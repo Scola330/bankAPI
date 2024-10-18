@@ -12,7 +12,9 @@ if ($db->connect_errno) {
 Route::add('/', function() {
     echo 'Hello world!';
   });
-
+  Route::add('/login', function() {
+  
+  }, 'post');
 Route::add('/account/([0-9]*)', function($accountNo) use($db){
     $account = Account::getAccountNo($accountNo, $db);
     header(('Content-Type: application/json'));
