@@ -28,10 +28,10 @@ class Account
         $array = [
             'user.id_account' => $this->accountNo,
             'konto.money_value' => $this->amount,
+            'konto.money_type' => $this->amount,
             'user.email' => $this->name
         ];
         return $array;
     }
 }
-
 ?>
