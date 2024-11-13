@@ -1,0 +1,6 @@
+array(2) {
+  ["user.email"]=>
+  string(17) "Skibid1@gmail.com"
+  ["user.password"]=>
+  string(12) "UYRd313usd@d"
+}
