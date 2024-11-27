@@ -20,11 +20,34 @@ class Transfer {
             //wykonaj zapytanie
             $query->execute();
             //aktualizuj stan konta docelowego
+            $sql = "UPDATE konto SET konto.rachunek_value = konto.rachunek_value - ? WHERE konto.ID = ?";
+            //przygotuj zapytanie
+            $query = $db->prepare($sql);
+            //podaj wartości do zapytania
+            $query->bind_param('ii', $money_value, $source);
+            //wykonaj zapytanie
+            $query->execute();
+            //aktualizuj stan konta docelowego
             $sql = "UPDATE konto SET konto.money_value = konto.money_value + ? WHERE konto.ID = ?";
             //przygotuj zapytanie
             $query = $db->prepare($sql);
             //podaj wartości do zapytania
             $query->bind_param('ii', $money_value, $source);
+            if ($money_value < 0){
+                $db->rollback();
+                throw new Exception('błąd przelewu, wartość nie jest zgodna z zasadami');
+            }
+            //wykonaj zapytanie
+            $query->execute();
+            $sql = "UPDATE konto SET konto.rachunek_value = konto.rachunek_value + ? WHERE konto.ID = ?";
+            //przygotuj zapytanie
+            $query = $db->prepare($sql);
+            //podaj wartości do zapytania
+            $query->bind_param('ii', $money_value, $source);
+            if ($money_value < 0){
+                $db->rollback();
+                throw new Exception('błąd przelewu, wartość nie jest zgodna z zasadami');
+            }
             //wykonaj zapytanie
             $query->execute();
             // zapisz dane o transferze
