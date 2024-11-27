@@ -1,9 +1,13 @@
 <?php 
+
 require_once('Route.php');
 require_once('classes/Account.php');
 require_once('classes/User.php');
 require_once('classes/hash_data.php');
 require_once('classes/Transfer.php');
+require_once('class/LoginRequest.php');
+require_once('class/LoginResponse.php');
+
 
 // Create a new MySQL connection
 $db = new mysqli('localhost', 'root', '', 'banco_de_skibidi');
@@ -15,6 +19,8 @@ use BankAPI\Account;
 use BankAPI\User;
 use BankAPI\hash_data;
 use BankAPI\Transfer;
+use BankAPI\LoginRequest;
+use BankAPI\LoginResponse;
 
 // Check if the connection was successful
 if ($db->connect_errno) {
@@ -28,29 +34,21 @@ Route::add('/', function() {
   });
 // Define the routes
   Route::add('/login', function() use($db) {
-    // Get the data from the request
-    $data = file_get_contents('php://input');
-    // Decode the JSON data
-    $data = json_decode($data, true);
-    // Get the IP address of the user
-    $ip = $_SERVER['REMOTE_ADDR'];
+    $request = new LoginRequest();
     // Try to log in the user
     try{
       // Call the login function from the User class
-      $id = User::login($data['email'], $data['password'], $db);
+      $id = User::login($request->getLogin(), $request->getPassword(), $db);
+
+    $ip = $_SERVER['REMOTE_ADDR'];
       // Generate a new token
       $token = hash_data::new($ip, $id, $db);
       // Send the token back to the user
-      header(('Content-Type: application/json'));
-      // Return the token as a JSON object
-      echo json_encode(['token' => $token]);
-      // If there is an error
+      $response = new LoginResponse($token, "");
+      $response->send();
+
     } catch (Exception $e) {
-      // Return an error message
-      header('HTTP/1.1 401 Unauthorized');
-      // Return the error message as a JSON object
-      echo json_encode(['error' => 'Invalid username or password']);
-      // Stop the script
+      $response = new LoginResponse("", $e->getMessage());
       return;
     }
   }, 'post');
