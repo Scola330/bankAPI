@@ -10,6 +10,7 @@ require_once('class/LoginResponse.php');
 require_once('class/AccountDetailsResponse.php');
 require_once('class/AccountDetailsRequest.php');
 require_once('class/AccountTransfersRequest.php');
+require_once('class/AccountTransfersResponse.php');
 
 
 // Create a new MySQL connection
@@ -28,6 +29,7 @@ use BankAPI\LoginRequest;
 use BankAPI\LoginResponse;
 use BankAPI\AccountDetailsResponse;
 use BankAPI\AccountTransfersRequest;
+use BankAPI\AccountTransfersResponse;
 
 // Check if the connection was successful
 if ($db->connect_errno) {
@@ -108,6 +110,7 @@ Route::add('/account/([0-9]*)', function($accountNo) use($db){
 Route::add('/transfer/history', function() use($db){
   // Get the data from the request
     $request = new AccountDetailsRequest();
+    $response = new AccountTransfersResponse();
     // Check if the token is valid
     if(!hash_data::check_hash($request->getToken(), $_SERVER['REMOTE_ADDR'], $db)){
       // Return an error message
@@ -124,10 +127,13 @@ Route::add('/transfer/history', function() use($db){
     // Copilot coś ty zrobił
     // Get the transfer history
     $history = AccountTransfersRequest::getTransferHistory($accountNo, $db);
+    if (!is_array($history)) {
+        $history = json_decode($history, true);
+    }
+    $response->setHistory($history);
+
     // Return the transfer history as a JSON object
-    header(('Content-Type: application/json'));
-    // Return the transfer history as a JSON object
-    return $history;
+    $response->send();
   }, 'post');
 
 Route::add('/transfer/new', function() use($db){
