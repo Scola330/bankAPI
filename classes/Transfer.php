@@ -16,7 +16,7 @@ class Transfer {
             //przygotuj zapytanie
             $query = $db->prepare($sql);
             //podaj wartości do zapytania
-            $query->bind_param('ii', $money_value, $target);
+            $query->bind_param('ii', $amount, $source);
             //wykonaj zapytanie
             $query->execute();
             //aktualizuj stan konta docelowego
@@ -24,7 +24,7 @@ class Transfer {
             //przygotuj zapytanie
             $query = $db->prepare($sql);
             //podaj wartości do zapytania
-            $query->bind_param('ii', $money_value, $source);
+            $query->bind_param('ii', $amount, $source);
             //wykonaj zapytanie
             $query->execute();
             //aktualizuj stan konta docelowego
@@ -32,10 +32,10 @@ class Transfer {
             //przygotuj zapytanie
             $query = $db->prepare($sql);
             //podaj wartości do zapytania
-            $query->bind_param('ii', $money_value, $source);
-            if ($money_value < 0){
+            $query->bind_param('ii', $amount, $target);
+            if ($amount < 0 || $amount == 0){
                 $db->rollback();
-                throw new Exception('błąd przelewu, wartość nie jest zgodna z zasadami');
+                throw new Exception('błąd przelewu, wartość nie jest poprawna');
             }
             //wykonaj zapytanie
             $query->execute();
@@ -43,8 +43,8 @@ class Transfer {
             //przygotuj zapytanie
             $query = $db->prepare($sql);
             //podaj wartości do zapytania
-            $query->bind_param('ii', $money_value, $source);
-            if ($money_value < 0){
+            $query->bind_param('ii', $amount, $target);
+            if ($amount < 0){
                 $db->rollback();
                 throw new Exception('błąd przelewu, wartość nie jest zgodna z zasadami');
             }
@@ -54,7 +54,7 @@ class Transfer {
             $sql = "INSERT INTO transfer_usser( transfer_usser.source_usser ,  transfer_usser.target_usser , transfer_usser.amount_transfer) VALUES (?, ?, ?)";
             //przygotuj zapytanie
             $query = $db->prepare($sql);
-            if ($money_value < 0){
+            if ($amount < 0){
                 $db->rollback();
                 throw new Exception('zbyt mało pieniędzy na koncie');
             }

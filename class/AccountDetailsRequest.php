@@ -10,10 +10,11 @@ class AccountDetailsRequest {
     // Create private variables for the class
     private string $token;
     // Create a constructor for the class
-    public function __construct(string $token) {
+    public function __construct() {
         // Get the token from the input
         $data = file_get_contents('php://input');
         // Decode the JSON data
+        $data = json_decode($data, true);
         $this->token = $data['token'];
     }
     // Create a function to get the token

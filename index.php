@@ -7,6 +7,9 @@ require_once('classes/hash_data.php');
 require_once('classes/Transfer.php');
 require_once('class/LoginRequest.php');
 require_once('class/LoginResponse.php');
+require_once('class/AccountDetailsResponse.php');
+require_once('class/AccountDetailsRequest.php');
+require_once('class/AccountTransfersRequest.php');
 
 
 // Create a new MySQL connection
@@ -16,11 +19,15 @@ $db->set_charset('utf8');
 // Check if the connection was successful
 use Steampixel\Route;
 use BankAPI\Account;
+use BankAPI\AccountDetailsRequest;
+
 use BankAPI\User;
 use BankAPI\hash_data;
 use BankAPI\Transfer;
 use BankAPI\LoginRequest;
 use BankAPI\LoginResponse;
+use BankAPI\AccountDetailsResponse;
+use BankAPI\AccountTransfersRequest;
 
 // Check if the connection was successful
 if ($db->connect_errno) {
@@ -55,13 +62,10 @@ Route::add('/', function() {
 
   Route::add('/account/details', function() use($db){
     // Get the data from the request
-    $data = file_get_contents('php://input');
-    // Decode the JSON data
-    $dataArray = json_decode($data, true);
-    // Get the token from the data
-    $token = $dataArray['token'];
+    $request = new AccountDetailsRequest();
+    $response = new AccountDetailsResponse();
     // Check if the token is valid
-    if(!hash_data::check_hash($token, $_SERVER['REMOTE_ADDR'], $db)){
+    if(!hash_data::check_hash($request->getToken(), $_SERVER['REMOTE_ADDR'], $db)){
       // Return an error message
       header('HTTP/1.1 401 Unauthorized');
       // Return the error message as a JSON object
@@ -69,15 +73,15 @@ Route::add('/', function() {
       // Stop the script
       return;
     }
-    $userId = hash_data::getUserId($token, $db);
+    $userId = hash_data::getUserId($request->getToken(), $db);
     // Get the account number for the user
     $accountNo = Account::getAccountNo($userId, $db);
     // Get the account details
     $account = Account::getAccount($accountNo, $db);
     // Return the account details as a JSON object
-    header(('Content-Type: application/json'));
+    $response->setAccount($account->getArray());
     // Return the account details as a JSON object
-    return json_encode($account->getArray());
+    $response->send();
     // Return the account details as a JSON object
   }, 'post');
 
@@ -100,6 +104,31 @@ Route::add('/account/([0-9]*)', function($accountNo) use($db){
     // Return the account details as a JSON object
     return json_encode($account->getArray());
 });
+
+Route::add('/transfer/history', function() use($db){
+  // Get the data from the request
+    $request = new AccountDetailsRequest();
+    // Check if the token is valid
+    if(!hash_data::check_hash($request->getToken(), $_SERVER['REMOTE_ADDR'], $db)){
+      // Return an error message
+      header('HTTP/1.1 401 Unauthorized');
+      // Return the error message as a JSON object
+      echo json_encode(['error' => 'Invalid token']);
+      // Stop the script
+      return;
+    }
+    // Get the user ID
+    $userId = hash_data::getUserId($request->getToken(), $db);
+    // Get the account number for the user
+    $accountNo = Account::getAccountNo($userId, $db);
+    // Copilot coś ty zrobił
+    // Get the transfer history
+    $history = AccountTransfersRequest::getTransferHistory($accountNo, $db);
+    // Return the transfer history as a JSON object
+    header(('Content-Type: application/json'));
+    // Return the transfer history as a JSON object
+    return json_encode($history);
+  }, 'post');
 
 Route::add('/transfer/new', function() use($db){
   // Get the data from the request
