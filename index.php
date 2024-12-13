@@ -127,7 +127,7 @@ Route::add('/transfer/history', function() use($db){
     // Return the transfer history as a JSON object
     header(('Content-Type: application/json'));
     // Return the transfer history as a JSON object
-    return json_encode($history);
+    return $history;
   }, 'post');
 
 Route::add('/transfer/new', function() use($db){
